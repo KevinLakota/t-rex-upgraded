@@ -30,7 +30,10 @@ fn main() {
         }))
         .insert_resource(GameState::Running)
         .insert_resource(Score { distance: 0.0 })
-        .insert_resource(ObstacleSpawnTimer { timer: 0.0 })
+        .insert_resource(ObstacleSpawnTimer {
+            timer: 0.0,
+            next_spawn_time: OBSTACLE_SPAWN_INTERVAL,
+        })
         .add_systems(Startup, (setup, setup_ui))
         .add_systems(
             Update,

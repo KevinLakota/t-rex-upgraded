@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+
 use crate::constants::*;
 use crate::game_state::GameState;
 use crate::obstacle::Obstacle;
@@ -7,7 +8,7 @@ use crate::player::Player;
 pub fn check_collision(
     mut game_state: ResMut<GameState>,
     player_query: Query<&Transform, With<Player>>,
-    obstacle_query: Query<&Transform, With<Obstacle>>,
+    obstacle_query: Query<(&Transform, &Obstacle)>,
 ) {
     if *game_state != GameState::Running {
         return;
@@ -17,12 +18,12 @@ pub fn check_collision(
         return;
     };
 
-    for obstacle_transform in &obstacle_query {
+    for (obstacle_transform, obstacle) in &obstacle_query {
         let collision = collide(
             player_transform.translation,
             Vec2::new(PLAYER_WIDTH, PLAYER_HEIGHT),
             obstacle_transform.translation,
-            Vec2::new(OBSTACLE_WIDTH, OBSTACLE_HEIGHT),
+            obstacle.obstacle_type.size(),
         );
 
         if collision {

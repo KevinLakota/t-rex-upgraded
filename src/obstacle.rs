@@ -1,13 +1,55 @@
 use bevy::prelude::*;
+use rand::{Rng, RngExt};
+
 use crate::constants::*;
 use crate::game_state::GameState;
 
+#[derive(Clone, Copy, Debug)]
+pub enum ObstacleType {
+    SmallCactus,
+    LargeCactus,
+}
+
 #[derive(Component)]
-pub struct Obstacle;
+pub struct Obstacle {
+    pub obstacle_type: ObstacleType,
+}
 
 #[derive(Resource)]
 pub struct ObstacleSpawnTimer {
     pub timer: f32,
+    pub next_spawn_time: f32,
+}
+
+impl ObstacleType {
+    pub fn size(&self) -> Vec2 {
+        match self {
+            ObstacleType::SmallCactus => Vec2::new(30.0, 50.0),
+            ObstacleType::LargeCactus => Vec2::new(45.0, 70.0),
+        }
+    }
+
+    pub fn color(&self) -> Color {
+        match self {
+            ObstacleType::SmallCactus => Color::srgb(0.8, 0.2, 0.2),
+            ObstacleType::LargeCactus => Color::srgb(0.9, 0.4, 0.2),
+        }
+    }
+}
+
+fn random_obstacle_type() -> ObstacleType {
+    let mut rng = rand::rng();
+
+    if rng.random_bool(0.7) {
+        ObstacleType::SmallCactus
+    } else {
+        ObstacleType::LargeCactus
+    }
+}
+
+fn random_spawn_interval() -> f32 {
+    let mut rng = rand::rng();
+    rng.random_range(1.2..=2.0)
 }
 
 pub fn spawn_obstacle(
@@ -22,20 +64,21 @@ pub fn spawn_obstacle(
 
     spawn_timer.timer += time.delta_secs();
 
-    if spawn_timer.timer >= OBSTACLE_SPAWN_INTERVAL {
+    if spawn_timer.timer >= spawn_timer.next_spawn_time {
         spawn_timer.timer = 0.0;
+        spawn_timer.next_spawn_time = random_spawn_interval();
+
+        let obstacle_type = random_obstacle_type();
+        let size = obstacle_type.size();
 
         commands.spawn((
-            Sprite::from_color(
-                Color::srgb(0.8, 0.2, 0.2),
-                Vec2::new(OBSTACLE_WIDTH, OBSTACLE_HEIGHT),
-            ),
+            Sprite::from_color(obstacle_type.color(), size),
             Transform::from_xyz(
                 OBSTACLE_START_X,
-                GROUND_Y + OBSTACLE_HEIGHT / 2.0,
+                GROUND_Y + size.y / 2.0,
                 1.0,
             ),
-            Obstacle,
+            Obstacle { obstacle_type },
         ));
     }
 }

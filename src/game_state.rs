@@ -27,6 +27,7 @@ pub fn restart_game(
         *game_state = GameState::Running;
         score.distance = 0.0;
         spawn_timer.timer = 0.0;
+        spawn_timer.next_spawn_time = OBSTACLE_SPAWN_INTERVAL;
 
         for entity in &obstacles {
             commands.entity(entity).despawn();

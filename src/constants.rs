@@ -11,9 +11,6 @@ pub const PLAYER_START_Y: f32 = GROUND_Y + 32.0;
 
 pub const GRAVITY: f32 = -900.0;
 pub const JUMP_FORCE: f32 = 400.0;
-
-pub const OBSTACLE_WIDTH: f32 = 30.0;
-pub const OBSTACLE_HEIGHT: f32 = 50.0;
 pub const OBSTACLE_START_X: f32 = 600.0;
 pub const OBSTACLE_SPEED: f32 = 300.0;
 pub const OBSTACLE_SPAWN_INTERVAL: f32 = 1.5;
