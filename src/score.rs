@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use crate::constants::*;
 use crate::game_state::GameState;
 use crate::difficulty::Difficulty;
 
