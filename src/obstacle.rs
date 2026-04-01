@@ -34,7 +34,7 @@ impl ObstacleType {
     pub fn size(&self) -> Vec2 {
         match self {
             ObstacleType::SmallCactus => Vec2::new(30.0, 50.0),
-            ObstacleType::LargeCactus => Vec2::new(45.0, 70.0),
+            ObstacleType::LargeCactus => Vec2::new(43.0, 60.0),
         }
     }
 
