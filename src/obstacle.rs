@@ -69,13 +69,13 @@ fn random_obstacle_type() -> ObstacleType {
 fn choose_spawn_pattern(score: f32) -> SpawnPattern {
     let mut rng = rand::rng();
 
-    if score < 800.0 {
+    if score < 2000.0 {
         if rng.random_bool(0.75) {
             SpawnPattern::Normal
         } else {
             SpawnPattern::Far
         }
-    } else if score < 2000.0 {
+    } else if score < 8000.0 {
         let roll = rng.random_range(0..100);
 
         if roll < 20 {
@@ -101,7 +101,7 @@ fn choose_spawn_pattern(score: f32) -> SpawnPattern {
 fn random_spawn_interval(pattern: SpawnPattern, speed: f32) -> f32 {
     let mut rng = rand::rng();
     let (min_time, max_time) = pattern.interval_range();
-    
+
     let speed_factor = (BASE_SPEED / speed).clamp(0.65, 1.0);
 
     rng.random_range((min_time * speed_factor)..=(max_time * speed_factor))
