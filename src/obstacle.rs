@@ -49,7 +49,7 @@ impl ObstacleType {
 impl SpawnPattern {
     pub fn interval_range(&self) -> (f32, f32) {
         match self {
-            SpawnPattern::Close => (1.10, 1.35),
+            SpawnPattern::Close => (1.20, 1.45),
             SpawnPattern::Normal => (1.45, 1.85),
             SpawnPattern::Far => (1.95, 2.35),
         }
