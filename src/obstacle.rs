@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use rand::{Rng, RngExt};
+use rand::{RngExt};
+use crate::difficulty::Difficulty;
 
 use crate::constants::*;
 use crate::game_state::GameState;
@@ -88,13 +89,14 @@ pub fn move_obstacles(
     mut query: Query<(Entity, &mut Transform), With<Obstacle>>,
     time: Res<Time>,
     game_state: Res<GameState>,
+    difficulty: Res<Difficulty>,
 ) {
     if *game_state != GameState::Running {
         return;
     }
 
     for (entity, mut transform) in &mut query {
-        transform.translation.x -= OBSTACLE_SPEED * time.delta_secs();
+        transform.translation.x -= difficulty.obstacle_speed * time.delta_secs();
 
         if transform.translation.x < DESPAWN_X {
             commands.entity(entity).despawn();

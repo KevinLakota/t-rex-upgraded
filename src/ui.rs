@@ -22,7 +22,7 @@ pub fn setup_ui(mut commands: Commands) {
         Node {
             position_type: PositionType::Absolute,
             top: px(15.0),
-            left: px(20.0),
+            right: px(20.0),
             ..default()
         },
         ScoreText,

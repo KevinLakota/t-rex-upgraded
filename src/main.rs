@@ -5,6 +5,7 @@ mod obstacle;
 mod player;
 mod score;
 mod ui;
+mod difficulty;
 
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
@@ -16,6 +17,7 @@ use obstacle::*;
 use player::*;
 use score::*;
 use ui::*;
+use difficulty::*;
 
 fn main() {
     App::new()
@@ -34,6 +36,9 @@ fn main() {
             timer: 0.0,
             next_spawn_time: OBSTACLE_SPAWN_INTERVAL,
         })
+        .insert_resource(Difficulty {
+        obstacle_speed: BASE_SPEED,
+        })
         .add_systems(Startup, (setup, setup_ui))
         .add_systems(
             Update,
@@ -47,6 +52,7 @@ fn main() {
                 check_collision.after(restart_game),
                 update_score_ui,
                 update_game_over_ui,
+                update_difficulty,
             ),
         )
         .run();
