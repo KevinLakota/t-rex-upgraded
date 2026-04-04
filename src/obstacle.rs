@@ -160,10 +160,10 @@ pub fn move_obstacles(
 }
 
 pub fn clear_obstacles(
-    mut commands: Commands,
-    obstacles: Query<Entity, With<Obstacle>>,
+    commands: &mut Commands,
+    obstacles: &Query<Entity, With<Obstacle>>,
 ) {
-    for entity in &obstacles {
+    for entity in obstacles {
         commands.entity(entity).despawn();
     }
 }

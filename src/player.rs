@@ -11,7 +11,7 @@ pub struct Velocity {
 }
 
 pub fn reset_player(
-    mut player_query: Query<(&mut Transform, &mut Velocity, &mut Visibility), With<Player>>,
+    player_query: &mut Query<(&mut Transform, &mut Velocity, &mut Visibility), With<Player>>,
 ) {
     let Ok((mut transform, mut velocity, mut visibility)) = player_query.single_mut() else {
         return;
