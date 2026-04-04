@@ -1,4 +1,12 @@
 use bevy::prelude::*;
+use bevy_simple_text_input::{
+    TextInput,
+    TextInputSettings,
+    TextInputSubmitMessage,
+    TextInputTextColor,
+    TextInputTextFont,
+    TextInputValue,
+};
 
 use crate::app_state::AppScreen;
 use crate::player_profile::PlayerProfile;
@@ -13,7 +21,7 @@ pub struct StartGameButton;
 pub struct BackToMenuButton;
 
 #[derive(Component)]
-pub struct NameDisplayText;
+pub struct NameInput;
 
 pub fn spawn_player_setup(commands: &mut Commands, player_name: &str) {
     commands
@@ -24,14 +32,15 @@ pub fn spawn_player_setup(commands: &mut Commands, player_name: &str) {
                 flex_direction: FlexDirection::Column,
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
-                row_gap: px(20.0),
+                row_gap: px(24.0),
+                padding: UiRect::all(px(24.0)),
                 ..default()
             },
             BackgroundColor(Color::srgb(0.06, 0.06, 0.10)),
             PlayerSetupUI,
         ))
-        .with_children(|parent| {
-            parent.spawn((
+        .with_children(|root| {
+            root.spawn((
                 Text::new("Player Setup"),
                 TextFont {
                     font_size: 42.0,
@@ -40,80 +49,212 @@ pub fn spawn_player_setup(commands: &mut Commands, player_name: &str) {
                 TextColor(Color::WHITE),
             ));
 
-            parent.spawn((
-                Text::new("Tu bude zadanie mena"),
+            root.spawn((
+                Text::new("Zadaj meno a stlač Enter alebo Play"),
                 TextFont {
-                    font_size: 24.0,
+                    font_size: 22.0,
                     ..default()
                 },
                 TextColor(Color::srgb(0.85, 0.85, 0.85)),
             ));
 
-            parent.spawn((
-                Text::new(format!(
-                    "Name: {}",
-                    if player_name.is_empty() {
-                        "_"
-                    } else {
-                        player_name
-                    }
-                )),
-                TextFont {
-                    font_size: 30.0,
+            root.spawn((
+                Node {
+                    width: px(520.0),
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    column_gap: px(12.0),
                     ..default()
                 },
-                TextColor(Color::srgb(1.0, 1.0, 0.8)),
-                NameDisplayText,
-            ));
-
-            parent
-                .spawn((
-                    Button,
-                    Node {
-                        width: px(220.0),
-                        height: px(65.0),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    BackgroundColor(Color::srgb(0.18, 0.18, 0.18)),
-                    StartGameButton,
-                ))
-                .with_children(|button| {
-                    button.spawn((
-                        Text::new("Play"),
+            ))
+                .with_children(|row| {
+                    row.spawn((
+                        Text::new("Name:"),
                         TextFont {
                             font_size: 28.0,
                             ..default()
                         },
                         TextColor(Color::WHITE),
+                    ));
+
+                    row.spawn((
+                        Node {
+                            width: px(340.0),
+                            min_height: px(52.0),
+                            border: UiRect::all(px(2.0)),
+                            padding: UiRect::axes(px(10.0), px(8.0)),
+                            ..default()
+                        },
+                        BorderColor::all(Color::srgb(0.65, 0.65, 0.90)),
+                        BackgroundColor(Color::srgb(0.12, 0.12, 0.16)),
+                        TextInput,
+                        NameInput,
+                        TextInputValue(player_name.to_string()),
+                        TextInputTextFont(TextFont {
+                            font_size: 28.0,
+                            ..default()
+                        }),
+                        TextInputTextColor(TextColor(Color::WHITE)),
+                        TextInputSettings {
+                            retain_on_submit: true,
+                            ..default()
+                        },
                     ));
                 });
 
-            parent
-                .spawn((
-                    Button,
-                    Node {
-                        width: px(220.0),
-                        height: px(65.0),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    BackgroundColor(Color::srgb(0.18, 0.18, 0.18)),
-                    BackToMenuButton,
-                ))
-                .with_children(|button| {
-                    button.spawn((
-                        Text::new("Back to Menu"),
-                        TextFont {
-                            font_size: 28.0,
+            root.spawn((
+                Node {
+                    width: px(760.0),
+                    flex_direction: FlexDirection::Row,
+                    column_gap: px(20.0),
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+            ))
+                .with_children(|row| {
+                    row.spawn((
+                        Node {
+                            width: px(280.0),
+                            height: px(220.0),
+                            border: UiRect::all(px(2.0)),
+                            padding: UiRect::all(px(16.0)),
+                            flex_direction: FlexDirection::Column,
+                            row_gap: px(10.0),
                             ..default()
                         },
-                        TextColor(Color::WHITE),
-                    ));
+                        BorderColor::all(Color::srgb(0.35, 0.35, 0.45)),
+                        BackgroundColor(Color::srgb(0.10, 0.10, 0.14)),
+                    ))
+                        .with_children(|panel| {
+                            panel.spawn((
+                                Text::new("Character Preview"),
+                                TextFont {
+                                    font_size: 24.0,
+                                    ..default()
+                                },
+                                TextColor(Color::WHITE),
+                            ));
+
+                            panel.spawn((
+                                Text::new("Sem neskôr pôjde preview postavy."),
+                                TextFont {
+                                    font_size: 18.0,
+                                    ..default()
+                                },
+                                TextColor(Color::srgb(0.82, 0.82, 0.82)),
+                            ));
+                        });
+
+                    row.spawn((
+                        Node {
+                            width: px(280.0),
+                            height: px(220.0),
+                            border: UiRect::all(px(2.0)),
+                            padding: UiRect::all(px(16.0)),
+                            flex_direction: FlexDirection::Column,
+                            row_gap: px(10.0),
+                            ..default()
+                        },
+                        BorderColor::all(Color::srgb(0.35, 0.35, 0.45)),
+                        BackgroundColor(Color::srgb(0.10, 0.10, 0.14)),
+                    ))
+                        .with_children(|panel| {
+                            panel.spawn((
+                                Text::new("Scoreboard"),
+                                TextFont {
+                                    font_size: 24.0,
+                                    ..default()
+                                },
+                                TextColor(Color::WHITE),
+                            ));
+
+                            panel.spawn((
+                                Text::new("Sem neskôr pôjde tabuľka skóre."),
+                                TextFont {
+                                    font_size: 18.0,
+                                    ..default()
+                                },
+                                TextColor(Color::srgb(0.82, 0.82, 0.82)),
+                            ));
+                        });
+                });
+
+            root.spawn((
+                Node {
+                    flex_direction: FlexDirection::Row,
+                    column_gap: px(16.0),
+                    ..default()
+                },
+            ))
+                .with_children(|buttons| {
+                    buttons
+                        .spawn((
+                            Button,
+                            Node {
+                                width: px(220.0),
+                                height: px(65.0),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgb(0.18, 0.18, 0.18)),
+                            StartGameButton,
+                        ))
+                        .with_children(|button| {
+                            button.spawn((
+                                Text::new("Play"),
+                                TextFont {
+                                    font_size: 28.0,
+                                    ..default()
+                                },
+                                TextColor(Color::WHITE),
+                            ));
+                        });
+
+                    buttons
+                        .spawn((
+                            Button,
+                            Node {
+                                width: px(220.0),
+                                height: px(65.0),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgb(0.18, 0.18, 0.18)),
+                            BackToMenuButton,
+                        ))
+                        .with_children(|button| {
+                            button.spawn((
+                                Text::new("Back to Menu"),
+                                TextFont {
+                                    font_size: 28.0,
+                                    ..default()
+                                },
+                                TextColor(Color::WHITE),
+                            ));
+                        });
                 });
         });
+}
+
+fn try_start_game(
+    text_input_query: &Query<&TextInputValue, With<NameInput>>,
+    player_profile: &mut ResMut<PlayerProfile>,
+    next_state: &mut ResMut<NextState<AppScreen>>,
+) {
+    let Ok(text_input) = text_input_query.single() else {
+        return;
+    };
+
+    let trimmed = text_input.0.trim();
+
+    if trimmed.is_empty() {
+        return;
+    }
+
+    player_profile.name = trimmed.to_string();
+    next_state.set(AppScreen::Running);
 }
 
 pub fn player_setup_button_system(
@@ -126,8 +267,9 @@ pub fn player_setup_button_system(
         ),
         (Changed<Interaction>, With<Button>),
     >,
+    text_input_query: Query<&TextInputValue, With<NameInput>>,
     mut next_state: ResMut<NextState<AppScreen>>,
-    player_profile: Res<PlayerProfile>,
+    mut player_profile: ResMut<PlayerProfile>,
 ) {
     for (interaction, mut color, start_game, back_button) in &mut interaction_query {
         match *interaction {
@@ -135,9 +277,7 @@ pub fn player_setup_button_system(
                 *color = BackgroundColor(Color::srgb(0.35, 0.35, 0.35));
 
                 if start_game.is_some() {
-                    if !player_profile.name.trim().is_empty() {
-                        next_state.set(AppScreen::Running);
-                    }
+                    try_start_game(&text_input_query, &mut player_profile, &mut next_state);
                 } else if back_button.is_some() {
                     next_state.set(AppScreen::MainMenu);
                 }
@@ -152,6 +292,17 @@ pub fn player_setup_button_system(
     }
 }
 
+pub fn player_setup_submit_system(
+    mut submit_events: MessageReader<TextInputSubmitMessage>,
+    text_input_query: Query<&TextInputValue, With<NameInput>>,
+    mut next_state: ResMut<NextState<AppScreen>>,
+    mut player_profile: ResMut<PlayerProfile>,
+) {
+    for _event in submit_events.read() {
+        try_start_game(&text_input_query, &mut player_profile, &mut next_state);
+    }
+}
+
 pub fn player_setup_back_to_menu(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut next_state: ResMut<NextState<AppScreen>>,
@@ -159,27 +310,6 @@ pub fn player_setup_back_to_menu(
     if keyboard.just_pressed(KeyCode::Escape) {
         next_state.set(AppScreen::MainMenu);
     }
-}
-
-pub fn update_player_name_text(
-    player_profile: Res<PlayerProfile>,
-    mut query: Query<&mut Text, With<NameDisplayText>>,
-) {
-    if !player_profile.is_changed() {
-        return;
-    }
-
-    let Ok(mut text) = query.single_mut() else {
-        return;
-    };
-
-    let shown_name = if player_profile.name.is_empty() {
-        "_".to_string()
-    } else {
-        player_profile.name.clone()
-    };
-
-    **text = format!("Name: {}", shown_name);
 }
 
 pub fn cleanup_player_setup(
@@ -196,59 +326,4 @@ pub fn spawn_player_setup_screen(
     player_profile: Res<PlayerProfile>,
 ) {
     spawn_player_setup(&mut commands, &player_profile.name);
-}
-
-pub fn player_name_input(
-    keyboard: Res<ButtonInput<KeyCode>>,
-    mut player_profile: ResMut<PlayerProfile>,
-) {
-    let keys = [
-        (KeyCode::KeyA, 'a'),
-        (KeyCode::KeyB, 'b'),
-        (KeyCode::KeyC, 'c'),
-        (KeyCode::KeyD, 'd'),
-        (KeyCode::KeyE, 'e'),
-        (KeyCode::KeyF, 'f'),
-        (KeyCode::KeyG, 'g'),
-        (KeyCode::KeyH, 'h'),
-        (KeyCode::KeyI, 'i'),
-        (KeyCode::KeyJ, 'j'),
-        (KeyCode::KeyK, 'k'),
-        (KeyCode::KeyL, 'l'),
-        (KeyCode::KeyM, 'm'),
-        (KeyCode::KeyN, 'n'),
-        (KeyCode::KeyO, 'o'),
-        (KeyCode::KeyP, 'p'),
-        (KeyCode::KeyQ, 'q'),
-        (KeyCode::KeyR, 'r'),
-        (KeyCode::KeyS, 's'),
-        (KeyCode::KeyT, 't'),
-        (KeyCode::KeyU, 'u'),
-        (KeyCode::KeyV, 'v'),
-        (KeyCode::KeyW, 'w'),
-        (KeyCode::KeyX, 'x'),
-        (KeyCode::KeyY, 'y'),
-        (KeyCode::KeyZ, 'z'),
-        (KeyCode::Digit0, '0'),
-        (KeyCode::Digit1, '1'),
-        (KeyCode::Digit2, '2'),
-        (KeyCode::Digit3, '3'),
-        (KeyCode::Digit4, '4'),
-        (KeyCode::Digit5, '5'),
-        (KeyCode::Digit6, '6'),
-        (KeyCode::Digit7, '7'),
-        (KeyCode::Digit8, '8'),
-        (KeyCode::Digit9, '9'),
-        (KeyCode::Space, ' '),
-    ];
-
-    for (key, ch) in keys {
-        if keyboard.just_pressed(key) && player_profile.name.len() < 16 {
-            player_profile.name.push(ch);
-        }
-    }
-
-    if keyboard.just_pressed(KeyCode::Backspace) {
-        player_profile.name.pop();
-    }
 }

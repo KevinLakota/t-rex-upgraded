@@ -15,6 +15,7 @@ mod game_reset;
 
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
+use bevy_simple_text_input::{TextInputPlugin, TextInputSystem};
 
 use app_state::*;
 use collision::*;
@@ -41,6 +42,7 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugins(TextInputPlugin)
         .init_state::<AppScreen>()
         .insert_resource(PlayerProfile::default())
         .insert_resource(Score { distance: 0.0 })
@@ -53,7 +55,6 @@ fn main() {
         })
         .insert_resource(Health::default())
         .insert_resource(Invulnerability::default())
-
         .add_systems(Startup, (setup, setup_ui))
 
         .add_systems(OnEnter(AppScreen::MainMenu), (spawn_main_menu, hide_all_game_ui))
@@ -113,8 +114,7 @@ fn main() {
             (
                 player_setup_button_system,
                 player_setup_back_to_menu,
-                player_name_input,
-                update_player_name_text,
+                player_setup_submit_system.after(TextInputSystem),
             )
                 .run_if(in_state(AppScreen::PlayerSetup)),
         )
