@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use crate::constants::*;
 use crate::game_state::GameState;
+use crate::health::{Invulnerability};
 
 #[derive(Component)]
 pub struct Player;
@@ -46,4 +47,45 @@ pub fn player_jump(
             velocity.y = JUMP_FORCE;
         }
     }
+}
+
+pub fn update_invulnerability(
+    mut invulnerability: ResMut<Invulnerability>,
+    time: Res<Time>,
+) {
+    if !invulnerability.active {
+        return;
+    }
+
+    invulnerability.timer -= time.delta_secs();
+    invulnerability.blink_timer += time.delta_secs();
+
+    if invulnerability.timer <= 0.0 {
+        invulnerability.active = false;
+        invulnerability.timer = 0.0;
+        invulnerability.blink_timer = 0.0;
+        invulnerability.visible = true;
+    }
+}
+
+pub fn blink_player(
+    invulnerability: Res<Invulnerability>,
+    mut query: Query<&mut Visibility, With<Player>>,
+) {
+    let Ok(mut visibility) = query.single_mut() else {
+        return;
+    };
+
+    if !invulnerability.active {
+        *visibility = Visibility::Visible;
+        return;
+    }
+
+    let blink_phase = (invulnerability.blink_timer / BLINK_INTERVAL) as i32 % 2 == 0;
+
+    *visibility = if blink_phase {
+        Visibility::Visible
+    } else {
+        Visibility::Hidden
+    };
 }

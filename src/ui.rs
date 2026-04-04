@@ -1,9 +1,13 @@
 use bevy::prelude::*;
 use crate::game_state::GameState;
 use crate::score::Score;
+use crate::health::Health;
 
 #[derive(Component)]
 pub struct ScoreText;
+
+#[derive(Component)]
+pub struct LivesText;
 
 #[derive(Component)]
 pub struct GameOverText;
@@ -26,6 +30,22 @@ pub fn setup_ui(mut commands: Commands) {
             ..default()
         },
         ScoreText,
+    ));
+
+    commands.spawn((
+        Text::new("♥♥♥"),
+        TextFont {
+            font_size: 32.0,
+            ..default()
+        },
+        TextColor(Color::srgb(1.0, 0.2, 0.2)),
+        Node {
+            position_type: PositionType::Absolute,
+            top: px(15.0),
+            left: px(20.0),
+            ..default()
+        },
+        LivesText,
     ));
 
     commands.spawn((
@@ -92,4 +112,18 @@ pub fn update_game_over_ui(
     if let Ok(mut node) = restart_query.single_mut() {
         node.display = game_over_display;
     }
+}
+
+pub fn update_lives_ui(
+    health: Res<Health>,
+    mut query: Query<&mut Text, With<LivesText>>,
+) {
+    let Ok(mut text) = query.single_mut() else {
+        return;
+    };
+
+    let hearts = "♥".repeat(health.current as usize);
+    let empty = "♡".repeat((health.max - health.current) as usize);
+
+    **text = format!("{}{}", hearts, empty);
 }

@@ -16,3 +16,7 @@ pub const BASE_SPEED: f32 = 300.0;
 pub const MAX_SPEED: f32 = 650.0;
 pub const OBSTACLE_SPAWN_INTERVAL: f32 = 1.5;
 pub const DESPAWN_X: f32 = -700.0;
+
+pub const MAX_HEALTH: u32 = 3;
+pub const INVULNERABILITY_DURATION: f32 = 1.0;
+pub const BLINK_INTERVAL: f32 = 0.12;

@@ -6,6 +6,7 @@ mod player;
 mod score;
 mod ui;
 mod difficulty;
+mod health;
 
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
@@ -18,6 +19,7 @@ use player::*;
 use score::*;
 use ui::*;
 use difficulty::*;
+use health::*;
 
 fn main() {
     App::new()
@@ -39,6 +41,8 @@ fn main() {
         .insert_resource(Difficulty {
         obstacle_speed: BASE_SPEED,
         })
+        .insert_resource(Health::default())
+        .insert_resource(Invulnerability::default())
         .add_systems(Startup, (setup, setup_ui))
         .add_systems(
             Update,
@@ -48,11 +52,14 @@ fn main() {
                 spawn_obstacle,
                 move_obstacles,
                 update_score,
+                update_difficulty,
+                update_invulnerability,
+                blink_player,
                 restart_game,
                 check_collision.after(restart_game),
                 update_score_ui,
                 update_game_over_ui,
-                update_difficulty,
+                update_lives_ui,
             ),
         )
         .run();
