@@ -10,6 +10,7 @@ use bevy_simple_text_input::{
 
 use crate::app_state::AppScreen;
 use crate::player_profile::PlayerProfile;
+use crate::scoreboard::Scoreboard;
 
 #[derive(Component)]
 pub struct PlayerSetupUI;
@@ -23,7 +24,26 @@ pub struct BackToMenuButton;
 #[derive(Component)]
 pub struct NameInput;
 
-pub fn spawn_player_setup(commands: &mut Commands, player_name: &str) {
+#[derive(Component)]
+pub struct ScoreboardText;
+
+pub fn spawn_player_setup(
+    commands: &mut Commands,
+    player_name: &str,
+    scoreboard: &Scoreboard,
+) {
+    let top_scores = if scoreboard.entries.is_empty() {
+        "No scores yet.".to_string()
+    } else {
+        scoreboard
+            .top_entries(5)
+            .iter()
+            .enumerate()
+            .map(|(i, entry)| format!("{}. {} - {}", i + 1, entry.name, entry.score))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+
     commands
         .spawn((
             Node {
@@ -50,7 +70,7 @@ pub fn spawn_player_setup(commands: &mut Commands, player_name: &str) {
             ));
 
             root.spawn((
-                Text::new("Zadaj meno a stlač Enter alebo Play"),
+                Text::new("Enter your name and press Enter or Play"),
                 TextFont {
                     font_size: 22.0,
                     ..default()
@@ -136,7 +156,7 @@ pub fn spawn_player_setup(commands: &mut Commands, player_name: &str) {
                             ));
 
                             panel.spawn((
-                                Text::new("Sem neskôr pôjde preview postavy."),
+                                Text::new("Character preview will be added here later."),
                                 TextFont {
                                     font_size: 18.0,
                                     ..default()
@@ -169,12 +189,13 @@ pub fn spawn_player_setup(commands: &mut Commands, player_name: &str) {
                             ));
 
                             panel.spawn((
-                                Text::new("Sem neskôr pôjde tabuľka skóre."),
+                                Text::new(top_scores),
                                 TextFont {
                                     font_size: 18.0,
                                     ..default()
                                 },
                                 TextColor(Color::srgb(0.82, 0.82, 0.82)),
+                                ScoreboardText,
                             ));
                         });
                 });
@@ -324,6 +345,7 @@ pub fn cleanup_player_setup(
 pub fn spawn_player_setup_screen(
     mut commands: Commands,
     player_profile: Res<PlayerProfile>,
+    scoreboard: Res<Scoreboard>,
 ) {
-    spawn_player_setup(&mut commands, &player_profile.name);
+    spawn_player_setup(&mut commands, &player_profile.name, &scoreboard);
 }

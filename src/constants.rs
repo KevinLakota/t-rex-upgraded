@@ -20,3 +20,6 @@ pub const DESPAWN_X: f32 = -700.0;
 pub const MAX_HEALTH: u32 = 3;
 pub const INVULNERABILITY_DURATION: f32 = 1.0;
 pub const BLINK_INTERVAL: f32 = 0.12;
+
+pub const MAX_SCOREBOARD_ENTRIES: usize = 20;
+pub const SCOREBOARD_FILE: &str = "scoreboard.txt";

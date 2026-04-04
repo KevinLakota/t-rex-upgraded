@@ -30,6 +30,7 @@ use player_setup::*;
 use score::*;
 use ui::*;
 use game_reset::*;
+use scoreboard::*;
 
 fn main() {
     App::new()
@@ -45,6 +46,7 @@ fn main() {
         .add_plugins(TextInputPlugin)
         .init_state::<AppScreen>()
         .insert_resource(PlayerProfile::default())
+        .insert_resource(Scoreboard::load_from_file())
         .insert_resource(Score { distance: 0.0 })
         .insert_resource(ObstacleSpawnTimer {
             timer: 0.0,
@@ -73,8 +75,10 @@ fn main() {
             OnEnter(AppScreen::Running),
             (reset_game, hide_all_game_ui, show_running_ui),
         )
-        .add_systems(OnEnter(AppScreen::GameOver), show_game_over_ui)
-
+        .add_systems(
+            OnEnter(AppScreen::GameOver),
+            (show_game_over_ui, save_score_on_game_over),
+        )
         .add_systems(
             Update,
             (
