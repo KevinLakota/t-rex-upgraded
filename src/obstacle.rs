@@ -1,9 +1,8 @@
 use bevy::prelude::*;
-use rand::{RngExt};
+use rand::RngExt;
 
 use crate::constants::*;
 use crate::difficulty::Difficulty;
-use crate::game_state::GameState;
 use crate::score::Score;
 
 #[derive(Clone, Copy, Debug)]
@@ -111,14 +110,9 @@ pub fn spawn_obstacle(
     mut commands: Commands,
     time: Res<Time>,
     mut spawn_timer: ResMut<ObstacleSpawnTimer>,
-    game_state: Res<GameState>,
     score: Res<Score>,
     difficulty: Res<Difficulty>,
 ) {
-    if *game_state != GameState::Running {
-        return;
-    }
-
     spawn_timer.timer += time.delta_secs();
 
     if spawn_timer.timer >= spawn_timer.next_spawn_time {
@@ -147,13 +141,8 @@ pub fn move_obstacles(
     mut commands: Commands,
     mut query: Query<(Entity, &mut Transform), With<Obstacle>>,
     time: Res<Time>,
-    game_state: Res<GameState>,
     difficulty: Res<Difficulty>,
 ) {
-    if *game_state != GameState::Running {
-        return;
-    }
-
     for (entity, mut transform) in &mut query {
         transform.translation.x -= difficulty.obstacle_speed * time.delta_secs();
 

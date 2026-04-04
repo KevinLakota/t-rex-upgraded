@@ -1,25 +1,32 @@
 mod collision;
 mod constants;
-mod game_state;
 mod obstacle;
 mod player;
 mod score;
 mod ui;
 mod difficulty;
 mod health;
+mod app_state;
+mod menu;
+mod player_profile;
+mod scoreboard;
+mod player_setup;
 
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
 
+use app_state::*;
 use collision::*;
 use constants::*;
-use game_state::*;
-use obstacle::*;
-use player::*;
-use score::*;
-use ui::*;
 use difficulty::*;
 use health::*;
+use menu::*;
+use obstacle::*;
+use player::*;
+use player_profile::*;
+use player_setup::*;
+use score::*;
+use ui::*;
 
 fn main() {
     App::new()
@@ -32,18 +39,39 @@ fn main() {
             }),
             ..default()
         }))
-        .insert_resource(GameState::Running)
+        .init_state::<AppScreen>()
+        .insert_resource(PlayerProfile::default())
         .insert_resource(Score { distance: 0.0 })
         .insert_resource(ObstacleSpawnTimer {
             timer: 0.0,
             next_spawn_time: OBSTACLE_SPAWN_INTERVAL,
         })
         .insert_resource(Difficulty {
-        obstacle_speed: BASE_SPEED,
+            obstacle_speed: BASE_SPEED,
         })
         .insert_resource(Health::default())
         .insert_resource(Invulnerability::default())
+
         .add_systems(Startup, (setup, setup_ui))
+
+        .add_systems(OnEnter(AppScreen::MainMenu), (spawn_main_menu, hide_all_game_ui))
+        .add_systems(OnExit(AppScreen::MainMenu), cleanup_main_menu)
+
+        .add_systems(OnEnter(AppScreen::Options), (spawn_options, hide_all_game_ui))
+        .add_systems(OnExit(AppScreen::Options), cleanup_options)
+
+        .add_systems(
+            OnEnter(AppScreen::PlayerSetup),
+            (spawn_player_setup_screen, hide_all_game_ui),
+        )
+        .add_systems(OnExit(AppScreen::PlayerSetup), cleanup_player_setup)
+
+        .add_systems(
+            OnEnter(AppScreen::Running),
+            (reset_game, hide_all_game_ui, show_running_ui),
+        )
+        .add_systems(OnEnter(AppScreen::GameOver), show_game_over_ui)
+
         .add_systems(
             Update,
             (
@@ -55,13 +83,40 @@ fn main() {
                 update_difficulty,
                 update_invulnerability,
                 blink_player,
-                restart_game,
-                check_collision.after(restart_game),
+                check_collision,
                 update_score_ui,
-                update_game_over_ui,
                 update_lives_ui,
-            ),
+            )
+                .run_if(in_state(AppScreen::Running)),
         )
+
+        .add_systems(
+            Update,
+            (restart_game, game_over_back_to_setup)
+                .run_if(in_state(AppScreen::GameOver)),
+        )
+
+        .add_systems(
+            Update,
+            menu_button_system.run_if(in_state(AppScreen::MainMenu)),
+        )
+
+        .add_systems(
+            Update,
+            menu_button_system.run_if(in_state(AppScreen::Options)),
+        )
+
+        .add_systems(
+            Update,
+            (
+                player_setup_button_system,
+                player_setup_back_to_menu,
+                player_name_input,
+                update_player_name_text,
+            )
+                .run_if(in_state(AppScreen::PlayerSetup)),
+        )
+
         .run();
 }
 

@@ -1,22 +1,18 @@
 use bevy::prelude::*;
 
+use crate::app_state::AppScreen;
 use crate::constants::*;
-use crate::game_state::GameState;
 use crate::health::{Health, Invulnerability};
 use crate::obstacle::Obstacle;
 use crate::player::Player;
 
 pub fn check_collision(
-    mut game_state: ResMut<GameState>,
+    mut next_state: ResMut<NextState<AppScreen>>,
     mut health: ResMut<Health>,
     mut invulnerability: ResMut<Invulnerability>,
     player_query: Query<&Transform, With<Player>>,
     obstacle_query: Query<(&Transform, &Obstacle)>,
 ) {
-    if *game_state != GameState::Running {
-        return;
-    }
-
     if invulnerability.active {
         return;
     }
@@ -44,7 +40,7 @@ pub fn check_collision(
             invulnerability.visible = false;
 
             if health.current == 0 {
-                *game_state = GameState::GameOver;
+                next_state.set(AppScreen::GameOver);
             }
             break;
         }

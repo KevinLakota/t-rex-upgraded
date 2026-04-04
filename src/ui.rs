@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use crate::game_state::GameState;
-use crate::score::Score;
 use crate::health::Health;
+use crate::score::Score;
 
 #[derive(Component)]
 pub struct ScoreText;
@@ -27,6 +26,7 @@ pub fn setup_ui(mut commands: Commands) {
             position_type: PositionType::Absolute,
             top: px(15.0),
             right: px(20.0),
+            display: Display::None,
             ..default()
         },
         ScoreText,
@@ -43,6 +43,7 @@ pub fn setup_ui(mut commands: Commands) {
             position_type: PositionType::Absolute,
             top: px(15.0),
             left: px(20.0),
+            display: Display::None,
             ..default()
         },
         LivesText,
@@ -94,26 +95,6 @@ pub fn update_score_ui(
     **text = format!("Score: {}", score.distance as i32);
 }
 
-pub fn update_game_over_ui(
-    game_state: Res<GameState>,
-    mut game_over_query: Query<&mut Node, (With<GameOverText>, Without<RestartText>)>,
-    mut restart_query: Query<&mut Node, (With<RestartText>, Without<GameOverText>)>,
-) {
-    let game_over_display = if *game_state == GameState::GameOver {
-        Display::Flex
-    } else {
-        Display::None
-    };
-
-    if let Ok(mut node) = game_over_query.single_mut() {
-        node.display = game_over_display;
-    }
-
-    if let Ok(mut node) = restart_query.single_mut() {
-        node.display = game_over_display;
-    }
-}
-
 pub fn update_lives_ui(
     health: Res<Health>,
     mut query: Query<&mut Text, With<LivesText>>,
@@ -126,4 +107,37 @@ pub fn update_lives_ui(
     let empty = "♡".repeat((health.max - health.current) as usize);
 
     **text = format!("{}{}", hearts, empty);
+}
+
+pub fn show_running_ui(
+    mut query: Query<
+        &mut Node,
+        Or<(With<ScoreText>, With<LivesText>)>,
+    >,
+) {
+    for mut node in &mut query {
+        node.display = Display::Block;
+    }
+}
+
+pub fn show_game_over_ui(
+    mut query: Query<
+        &mut Node,
+        Or<(With<GameOverText>, With<RestartText>)>,
+    >,
+) {
+    for mut node in &mut query {
+        node.display = Display::Block;
+    }
+}
+
+pub fn hide_all_game_ui(
+    mut query: Query<
+        &mut Node,
+        Or<(With<ScoreText>, With<LivesText>, With<GameOverText>, With<RestartText>)>,
+    >,
+) {
+    for mut node in &mut query {
+        node.display = Display::None;
+    }
 }
