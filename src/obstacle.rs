@@ -29,6 +29,13 @@ pub struct ObstacleSpawnTimer {
     pub next_spawn_time: f32,
 }
 
+impl ObstacleSpawnTimer {
+    pub fn reset(&mut self) {
+        self.timer = 0.0;
+        self.next_spawn_time = OBSTACLE_SPAWN_INTERVAL;
+    }
+}
+
 impl ObstacleType {
     pub fn size(&self) -> Vec2 {
         match self {
@@ -149,5 +156,14 @@ pub fn move_obstacles(
         if transform.translation.x < DESPAWN_X {
             commands.entity(entity).despawn();
         }
+    }
+}
+
+pub fn clear_obstacles(
+    mut commands: Commands,
+    obstacles: Query<Entity, With<Obstacle>>,
+) {
+    for entity in &obstacles {
+        commands.entity(entity).despawn();
     }
 }

@@ -34,3 +34,18 @@ impl Default for Invulnerability {
         }
     }
 }
+
+impl Health {
+    pub fn reset_to_max(&mut self) {
+        self.current = self.max;
+    }
+}
+
+impl Invulnerability {
+    pub fn reset(&mut self) {
+        self.active = false;
+        self.timer = 0.0;
+        self.blink_timer = 0.0;
+        self.visible = true;
+    }
+}

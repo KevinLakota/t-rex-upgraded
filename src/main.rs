@@ -11,6 +11,7 @@ mod menu;
 mod player_profile;
 mod scoreboard;
 mod player_setup;
+mod game_reset;
 
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
@@ -27,6 +28,7 @@ use player_profile::*;
 use player_setup::*;
 use score::*;
 use ui::*;
+use game_reset::*;
 
 fn main() {
     App::new()

@@ -10,6 +10,19 @@ pub struct Velocity {
     pub y: f32,
 }
 
+pub fn reset_player(
+    mut player_query: Query<(&mut Transform, &mut Velocity, &mut Visibility), With<Player>>,
+) {
+    let Ok((mut transform, mut velocity, mut visibility)) = player_query.single_mut() else {
+        return;
+    };
+
+    transform.translation.x = PLAYER_START_X;
+    transform.translation.y = PLAYER_START_Y;
+    velocity.y = 0.0;
+    *visibility = Visibility::Visible;
+}
+
 pub fn player_movement(
     mut query: Query<(&mut Transform, &mut Velocity), With<Player>>,
     time: Res<Time>,
