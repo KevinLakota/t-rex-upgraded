@@ -126,7 +126,10 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
     commands.spawn(Camera2d);
 
     commands.spawn((
@@ -137,12 +140,12 @@ fn setup(mut commands: Commands) {
         Transform::from_xyz(0.0, GROUND_Y, 0.0),
     ));
 
+    let texture = asset_server.load("idle.png");
+
     commands.spawn((
-        Sprite::from_color(
-            Color::srgb(0.2, 0.8, 0.2),
-            Vec2::new(PLAYER_WIDTH, PLAYER_HEIGHT),
-        ),
-        Transform::from_xyz(PLAYER_START_X, PLAYER_START_Y, 1.0),
+        Sprite::from_image(texture),
+        Transform::from_xyz(PLAYER_START_X, PLAYER_START_Y, 1.0)
+            .with_scale(Vec3::splat(0.35)),
         Player,
         Velocity { y: 0.0 },
     ));

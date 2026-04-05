@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use std::fs::{self, OpenOptions};
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use crate::constants::*;
+use crate::constants::{SCOREBOARD_FILE, MAX_SCOREBOARD_ENTRIES};
 use crate::player_profile::PlayerProfile;
 use crate::score::Score;
 
@@ -31,7 +31,7 @@ impl Scoreboard {
         };
 
         let reader = BufReader::new(file);
-        let mut entries = Vec::new();
+        let mut scoreboard = Self::default();
 
         for line in reader.lines() {
             let Ok(line) = line else {
@@ -52,17 +52,35 @@ impl Scoreboard {
                 continue;
             }
 
-            entries.push(ScoreEntry { name, score });
+            scoreboard.add_entry(name, score);
         }
 
-        entries.sort_by(|a, b| b.score.cmp(&a.score));
-        entries.truncate(MAX_SCOREBOARD_ENTRIES);
-
-        Self { entries }
+        scoreboard
     }
 
     pub fn add_entry(&mut self, name: String, score: i32) {
-        self.entries.push(ScoreEntry { name, score });
+        let normalized_name = name.trim();
+
+        if normalized_name.is_empty() {
+            return;
+        }
+
+        if let Some(existing) = self
+            .entries
+            .iter_mut()
+            .find(|entry| entry.name.eq_ignore_ascii_case(normalized_name))
+        {
+            if score > existing.score {
+                existing.name = normalized_name.to_string();
+                existing.score = score;
+            }
+        } else {
+            self.entries.push(ScoreEntry {
+                name: normalized_name.to_string(),
+                score,
+            });
+        }
+
         self.entries.sort_by(|a, b| b.score.cmp(&a.score));
         self.entries.truncate(MAX_SCOREBOARD_ENTRIES);
     }
@@ -81,6 +99,7 @@ impl Scoreboard {
         self.entries.iter().take(count).cloned().collect()
     }
 }
+
 pub fn save_score_on_game_over(
     player_profile: Res<PlayerProfile>,
     score: Res<Score>,

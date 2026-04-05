@@ -31,6 +31,7 @@ pub fn spawn_player_setup(
     commands: &mut Commands,
     player_name: &str,
     scoreboard: &Scoreboard,
+    asset_server: &AssetServer,
 ) {
     let top_scores = if scoreboard.entries.is_empty() {
         "No scores yet.".to_string()
@@ -43,6 +44,8 @@ pub fn spawn_player_setup(
             .collect::<Vec<_>>()
             .join("\n")
     };
+
+    let preview_texture = asset_server.load("idle.png");
 
     commands
         .spawn((
@@ -140,6 +143,7 @@ pub fn spawn_player_setup(
                             padding: UiRect::all(px(16.0)),
                             flex_direction: FlexDirection::Column,
                             row_gap: px(10.0),
+                            align_items: AlignItems::Center,
                             ..default()
                         },
                         BorderColor::all(Color::srgb(0.35, 0.35, 0.45)),
@@ -156,12 +160,12 @@ pub fn spawn_player_setup(
                             ));
 
                             panel.spawn((
-                                Text::new("Character preview will be added here later."),
-                                TextFont {
-                                    font_size: 18.0,
+                                ImageNode::new(preview_texture.clone()),
+                                Node {
+                                    width: px(100.0),
+                                    height: px(100.0),
                                     ..default()
                                 },
-                                TextColor(Color::srgb(0.82, 0.82, 0.82)),
                             ));
                         });
 
@@ -346,6 +350,12 @@ pub fn spawn_player_setup_screen(
     mut commands: Commands,
     player_profile: Res<PlayerProfile>,
     scoreboard: Res<Scoreboard>,
+    asset_server: Res<AssetServer>,
 ) {
-    spawn_player_setup(&mut commands, &player_profile.name, &scoreboard);
+    spawn_player_setup(
+        &mut commands,
+        &player_profile.name,
+        &scoreboard,
+        &asset_server,
+    );
 }
