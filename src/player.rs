@@ -10,17 +10,11 @@ pub struct Velocity {
     pub y: f32,
 }
 
-pub fn reset_player(
-    player_query: &mut Query<(&mut Transform, &mut Velocity, &mut Visibility), With<Player>>,
-) {
-    let Ok((mut transform, mut velocity, mut visibility)) = player_query.single_mut() else {
-        return;
-    };
-
-    transform.translation.x = PLAYER_START_X;
-    transform.translation.y = PLAYER_START_Y;
-    velocity.y = 0.0;
-    *visibility = Visibility::Visible;
+#[derive(Component)]
+pub struct PlayerAnimation {
+    pub frames: Vec<Handle<Image>>,
+    pub current_frame: usize,
+    pub timer: Timer,
 }
 
 pub fn player_movement(
@@ -90,4 +84,41 @@ pub fn blink_player(
     } else {
         Visibility::Hidden
     };
+}
+
+pub fn reset_player(
+    player_query: &mut Query<
+        (&mut Transform, &mut Velocity, &mut Visibility, &mut Sprite, &mut PlayerAnimation),
+        With<Player>,
+    >,
+) {
+    let Ok((mut transform, mut velocity, mut visibility, mut sprite, mut animation)) =
+        player_query.single_mut()
+    else {
+        return;
+    };
+
+    transform.translation.x = PLAYER_START_X;
+    transform.translation.y = PLAYER_START_Y;
+    velocity.y = 0.0;
+    *visibility = Visibility::Visible;
+
+    animation.current_frame = 0;
+    animation.timer.reset();
+    sprite.image = animation.frames[0].clone();
+}
+pub fn animate_player(
+    time: Res<Time>,
+    mut query: Query<(&mut Sprite, &mut PlayerAnimation), With<Player>>,
+) {
+    let Ok((mut sprite, mut animation)) = query.single_mut() else {
+        return;
+    };
+
+    animation.timer.tick(time.delta());
+
+    if animation.timer.just_finished() {
+        animation.current_frame = (animation.current_frame + 1) % animation.frames.len();
+        sprite.image = animation.frames[animation.current_frame].clone();
+    }
 }

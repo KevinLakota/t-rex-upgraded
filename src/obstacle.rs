@@ -37,18 +37,22 @@ impl ObstacleSpawnTimer {
 }
 
 impl ObstacleType {
+    // Hitbox size
     pub fn size(&self) -> Vec2 {
         match self {
             ObstacleType::SmallCactus => Vec2::new(30.0, 50.0),
             ObstacleType::LargeCactus => Vec2::new(43.0, 60.0),
         }
     }
-
-    pub fn color(&self) -> Color {
+    pub fn visual_size(&self) -> Vec2 {
         match self {
-            ObstacleType::SmallCactus => Color::srgb(0.8, 0.2, 0.2),
-            ObstacleType::LargeCactus => Color::srgb(0.9, 0.4, 0.2),
+            ObstacleType::SmallCactus => Vec2::new(33.0, 53.0),
+            ObstacleType::LargeCactus => Vec2::new(45.0, 62.0),
         }
+    }
+
+    pub fn texture(&self, asset_server: &AssetServer) -> Handle<Image> {
+        asset_server.load("kaktus.png")
     }
 }
 
@@ -119,6 +123,7 @@ pub fn spawn_obstacle(
     mut spawn_timer: ResMut<ObstacleSpawnTimer>,
     score: Res<Score>,
     difficulty: Res<Difficulty>,
+    asset_server: Res<AssetServer>,
 ) {
     spawn_timer.timer += time.delta_secs();
 
@@ -130,13 +135,18 @@ pub fn spawn_obstacle(
             random_spawn_interval(pattern, difficulty.obstacle_speed);
 
         let obstacle_type = random_obstacle_type();
-        let size = obstacle_type.size();
+        let visual_size = obstacle_type.visual_size();
+        let texture = obstacle_type.texture(&asset_server);
 
         commands.spawn((
-            Sprite::from_color(obstacle_type.color(), size),
+            Sprite {
+                image: texture,
+                custom_size: Some(visual_size),
+                ..default()
+            },
             Transform::from_xyz(
                 OBSTACLE_START_X,
-                GROUND_Y + size.y / 2.0,
+                GROUND_Y + visual_size.y / 2.0,
                 1.0,
             ),
             Obstacle { obstacle_type },

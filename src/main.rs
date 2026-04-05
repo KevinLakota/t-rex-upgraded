@@ -12,9 +12,10 @@ mod player_profile;
 mod scoreboard;
 mod player_setup;
 mod game_reset;
+mod background;
 
 use bevy::prelude::*;
-use bevy::window::WindowResolution;
+use bevy::window::{PrimaryWindow, WindowMode};
 use bevy_simple_text_input::{TextInputPlugin, TextInputSystem};
 
 use app_state::*;
@@ -31,14 +32,14 @@ use score::*;
 use ui::*;
 use game_reset::*;
 use scoreboard::*;
+use background::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "T-Rex Upgraded".to_string(),
-                resolution: WindowResolution::new(WINDOW_WIDTH, WINDOW_HEIGHT),
-                resizable: false,
+                mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
                 ..default()
             }),
             ..default()
@@ -58,19 +59,15 @@ fn main() {
         .insert_resource(Health::default())
         .insert_resource(Invulnerability::default())
         .add_systems(Startup, (setup, setup_ui))
-
         .add_systems(OnEnter(AppScreen::MainMenu), (spawn_main_menu, hide_all_game_ui))
         .add_systems(OnExit(AppScreen::MainMenu), cleanup_main_menu)
-
         .add_systems(OnEnter(AppScreen::Options), (spawn_options, hide_all_game_ui))
         .add_systems(OnExit(AppScreen::Options), cleanup_options)
-
         .add_systems(
             OnEnter(AppScreen::PlayerSetup),
             (spawn_player_setup_screen, hide_all_game_ui),
         )
         .add_systems(OnExit(AppScreen::PlayerSetup), cleanup_player_setup)
-
         .add_systems(
             OnEnter(AppScreen::Running),
             (reset_game, hide_all_game_ui, show_running_ui),
@@ -86,6 +83,7 @@ fn main() {
                 player_movement,
                 spawn_obstacle,
                 move_obstacles,
+                animate_player,
                 update_score,
                 update_difficulty,
                 update_invulnerability,
@@ -93,26 +91,28 @@ fn main() {
                 check_collision,
                 update_score_ui,
                 update_lives_ui,
+                move_background,
+                loop_background,
             )
                 .run_if(in_state(AppScreen::Running)),
         )
-
         .add_systems(
             Update,
-            (restart_game, game_over_back_to_setup)
+            (
+                restart_game,
+                game_over_back_to_setup,
+                game_over_button_system,
+            )
                 .run_if(in_state(AppScreen::GameOver)),
         )
-
         .add_systems(
             Update,
             menu_button_system.run_if(in_state(AppScreen::MainMenu)),
         )
-
         .add_systems(
             Update,
             menu_button_system.run_if(in_state(AppScreen::Options)),
         )
-
         .add_systems(
             Update,
             (
@@ -122,31 +122,35 @@ fn main() {
             )
                 .run_if(in_state(AppScreen::PlayerSetup)),
         )
-
         .run();
 }
 
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    window: Single<&Window, With<PrimaryWindow>>,
 ) {
     commands.spawn(Camera2d);
 
-    commands.spawn((
-        Sprite::from_color(
-            Color::srgb(0.3, 0.3, 0.3),
-            Vec2::new(WORLD_WIDTH, 4.0),
-        ),
-        Transform::from_xyz(0.0, GROUND_Y, 0.0),
-    ));
+    let visible_width = window.width();
 
-    let texture = asset_server.load("idle.png");
+    spawn_background(&mut commands, &asset_server, visible_width);
+    spawn_ground_visual(&mut commands, visible_width);
+
+    let idle = asset_server.load("idle.png");
+    let run1 = asset_server.load("run1.png");
+    let run2 = asset_server.load("run2.png");
 
     commands.spawn((
-        Sprite::from_image(texture),
+        Sprite::from_image(idle.clone()),
         Transform::from_xyz(PLAYER_START_X, PLAYER_START_Y, 1.0)
-            .with_scale(Vec3::splat(0.35)),
+            .with_scale(Vec3::splat(PLAYER_SPRITE_SCALE)),
         Player,
         Velocity { y: 0.0 },
+        PlayerAnimation {
+            frames: vec![idle.clone(), run1, idle.clone(), run2],
+            current_frame: 0,
+            timer: Timer::from_seconds(0.12, TimerMode::Repeating),
+        },
     ));
 }
