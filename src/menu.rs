@@ -3,6 +3,7 @@ use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::prelude::*;
 
 use crate::app_state::AppScreen;
+use crate::settings::GameSettings;
 
 #[derive(Component)]
 pub struct MainMenuUI;
@@ -21,6 +22,21 @@ pub struct ExitButton;
 
 #[derive(Component)]
 pub struct BackToMenuButton;
+
+#[derive(Component)]
+pub struct MusicDownButton;
+
+#[derive(Component)]
+pub struct MusicUpButton;
+
+#[derive(Component)]
+pub struct ToggleDisplayButton;
+
+#[derive(Component)]
+pub struct VolumeValueText;
+
+#[derive(Component)]
+pub struct DisplayValueText;
 
 fn spawn_menu_button<T: Component>(
     parent: &mut RelatedSpawnerCommands<ChildOf>,
@@ -83,7 +99,10 @@ pub fn spawn_main_menu(mut commands: Commands) {
         });
 }
 
-pub fn spawn_options(mut commands: Commands) {
+pub fn spawn_options(
+    mut commands: Commands,
+    settings: Res<GameSettings>,
+) {
     commands
         .spawn((
             Node {
@@ -109,14 +128,46 @@ pub fn spawn_options(mut commands: Commands) {
             ));
 
             parent.spawn((
-                Text::new("Sem neskor pojde hudba a SFX."),
+                Text::new(format!("Music Volume: {}%", settings.volume_percent())),
                 TextFont {
                     font_size: 24.0,
                     ..default()
                 },
                 TextColor(Color::srgb(0.85, 0.85, 0.85)),
+                VolumeValueText,
             ));
 
+            parent
+                .spawn((
+                    Node {
+                        flex_direction: FlexDirection::Row,
+                        column_gap: px(16.0),
+                        ..default()
+                    },
+                ))
+                .with_children(|row| {
+                    spawn_menu_button(row, "Music -", MusicDownButton);
+                    spawn_menu_button(row, "Music +", MusicUpButton);
+                });
+
+            parent.spawn((
+                Text::new(format!(
+                    "Display Mode: {}",
+                    if settings.fullscreen {
+                        "Fullscreen"
+                    } else {
+                        "Window"
+                    }
+                )),
+                TextFont {
+                    font_size: 24.0,
+                    ..default()
+                },
+                TextColor(Color::srgb(0.85, 0.85, 0.85)),
+                DisplayValueText,
+            ));
+
+            spawn_menu_button(parent, "Toggle Fullscreen", ToggleDisplayButton);
             spawn_menu_button(parent, "Back to Menu", BackToMenuButton);
         });
 }
@@ -130,13 +181,27 @@ pub fn menu_button_system(
             Option<&OptionsButton>,
             Option<&ExitButton>,
             Option<&BackToMenuButton>,
+            Option<&MusicDownButton>,
+            Option<&MusicUpButton>,
+            Option<&ToggleDisplayButton>,
         ),
         (Changed<Interaction>, With<Button>),
     >,
     mut next_state: ResMut<NextState<AppScreen>>,
     mut exit: MessageWriter<AppExit>,
+    mut settings: ResMut<GameSettings>,
 ) {
-    for (interaction, mut color, play, options, exit_button, back_button) in &mut interaction_query
+    for (
+        interaction,
+        mut color,
+        play,
+        options,
+        exit_button,
+        back_button,
+        music_down,
+        music_up,
+        toggle_display,
+    ) in &mut interaction_query
     {
         match *interaction {
             Interaction::Pressed => {
@@ -150,6 +215,12 @@ pub fn menu_button_system(
                     exit.write(AppExit::Success);
                 } else if back_button.is_some() {
                     next_state.set(AppScreen::MainMenu);
+                } else if music_down.is_some() {
+                    settings.decrease_volume();
+                } else if music_up.is_some() {
+                    settings.increase_volume();
+                } else if toggle_display.is_some() {
+                    settings.fullscreen = !settings.fullscreen;
                 }
             }
             Interaction::Hovered => {

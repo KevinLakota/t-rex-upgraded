@@ -13,6 +13,7 @@ mod scoreboard;
 mod player_setup;
 mod game_reset;
 mod background;
+mod settings;
 
 use bevy::prelude::*;
 use bevy::window::{PrimaryWindow, WindowMode};
@@ -33,6 +34,7 @@ use ui::*;
 use game_reset::*;
 use scoreboard::*;
 use background::*;
+use settings::*;
 
 fn main() {
     App::new()
@@ -46,6 +48,7 @@ fn main() {
         }))
         .add_plugins(TextInputPlugin)
         .init_state::<AppScreen>()
+        .insert_resource(GameSettings::default())
         .insert_resource(PlayerProfile::default())
         .insert_resource(Scoreboard::load_from_file())
         .insert_resource(Score { distance: 0.0 })
@@ -62,6 +65,8 @@ fn main() {
         .add_systems(OnEnter(AppScreen::MainMenu), (spawn_main_menu, hide_all_game_ui))
         .add_systems(OnExit(AppScreen::MainMenu), cleanup_main_menu)
         .add_systems(OnEnter(AppScreen::Options), (spawn_options, hide_all_game_ui))
+        .add_systems(Startup, start_background_music)
+        .add_systems(Update, (apply_music_volume, apply_window_mode, update_options_ui))
         .add_systems(OnExit(AppScreen::Options), cleanup_options)
         .add_systems(
             OnEnter(AppScreen::PlayerSetup),
