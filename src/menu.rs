@@ -5,6 +5,23 @@ use bevy::prelude::*;
 use crate::app_state::AppScreen;
 use crate::settings::GameSettings;
 
+type MenuButtonQuery<'w, 's> = Query<
+    'w,
+    's,
+    (
+        &'static Interaction,
+        &'static mut BackgroundColor,
+        Option<&'static PlayButton>,
+        Option<&'static OptionsButton>,
+        Option<&'static ExitButton>,
+        Option<&'static BackToMenuButton>,
+        Option<&'static MusicDownButton>,
+        Option<&'static MusicUpButton>,
+        Option<&'static ToggleDisplayButton>,
+    ),
+    (Changed<Interaction>, With<Button>),
+>;
+
 #[derive(Component)]
 pub struct MainMenuUI;
 
@@ -173,20 +190,7 @@ pub fn spawn_options(
 }
 
 pub fn menu_button_system(
-    mut interaction_query: Query<
-        (
-            &Interaction,
-            &mut BackgroundColor,
-            Option<&PlayButton>,
-            Option<&OptionsButton>,
-            Option<&ExitButton>,
-            Option<&BackToMenuButton>,
-            Option<&MusicDownButton>,
-            Option<&MusicUpButton>,
-            Option<&ToggleDisplayButton>,
-        ),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut interaction_query: MenuButtonQuery,
     mut next_state: ResMut<NextState<AppScreen>>,
     mut exit: MessageWriter<AppExit>,
     mut settings: ResMut<GameSettings>,

@@ -12,6 +12,18 @@ use crate::app_state::AppScreen;
 use crate::player_profile::PlayerProfile;
 use crate::scoreboard::Scoreboard;
 
+type PlayerSetupButtonQuery<'w, 's> = Query<
+    'w,
+    's,
+    (
+        &'static Interaction,
+        &'static mut BackgroundColor,
+        Option<&'static StartGameButton>,
+        Option<&'static BackToMenuButton>,
+    ),
+    (Changed<Interaction>, With<Button>),
+>;
+
 #[derive(Component)]
 pub struct PlayerSetupUI;
 
@@ -283,19 +295,12 @@ fn try_start_game(
 }
 
 pub fn player_setup_button_system(
-    mut interaction_query: Query<
-        (
-            &Interaction,
-            &mut BackgroundColor,
-            Option<&StartGameButton>,
-            Option<&BackToMenuButton>,
-        ),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut interaction_query: PlayerSetupButtonQuery,
     text_input_query: Query<&TextInputValue, With<NameInput>>,
     mut next_state: ResMut<NextState<AppScreen>>,
     mut player_profile: ResMut<PlayerProfile>,
 ) {
+
     for (interaction, mut color, start_game, back_button) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {

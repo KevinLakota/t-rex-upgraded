@@ -4,6 +4,9 @@ use bevy::window::{MonitorSelection, PrimaryWindow, WindowMode};
 
 use crate::menu::{DisplayValueText, VolumeValueText};
 
+type VolumeTextQuery<'w, 's> = Query<'w, 's, &'static mut Text, With<VolumeValueText>>;
+type DisplayTextQuery<'w, 's> = Query<'w, 's, &'static mut Text, With<DisplayValueText>>;
+
 #[derive(Resource)]
 pub struct GameSettings {
     pub music_volume: f32,
@@ -86,10 +89,7 @@ pub fn apply_window_mode(
 
 pub fn update_options_ui(
     settings: Res<GameSettings>,
-    mut queries: ParamSet<(
-        Query<&mut Text, With<VolumeValueText>>,
-        Query<&mut Text, With<DisplayValueText>>,
-    )>,
+    mut queries: ParamSet<(VolumeTextQuery, DisplayTextQuery)>,
 ) {
     if !settings.is_changed() {
         return;

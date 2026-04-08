@@ -4,6 +4,21 @@ use crate::health::Health;
 use crate::score::Score;
 use crate::constants::MAX_HEALTH;
 
+type ScoreQuery<'w, 's> = Query<'w, 's, &'static mut Node, With<ScoreText>>;
+type LivesQuery<'w, 's> = Query<'w, 's, &'static mut Node, With<LivesText>>;
+type GameOverQuery<'w, 's> = Query<'w, 's, &'static mut Node, With<GameOverUI>>;
+type GameOverButtonQuery<'w, 's> = Query<
+    'w,
+    's,
+    (
+        &'static Interaction,
+        &'static mut BackgroundColor,
+        Option<&'static RestartButton>,
+        Option<&'static GameOverMenuButton>,
+    ),
+    (Changed<Interaction>, With<Button>),
+>;
+
 #[derive(Component)]
 pub struct ScoreText;
 
@@ -180,10 +195,7 @@ pub fn update_lives_ui(
 }
 
 pub fn show_running_ui(
-    mut queries: ParamSet<(
-        Query<&mut Node, With<ScoreText>>,
-        Query<&mut Node, With<LivesText>>,
-    )>,
+    mut queries: ParamSet<(ScoreQuery, LivesQuery)>,
 ) {
     if let Ok(mut node) = queries.p0().single_mut() {
         node.display = Display::Block;
@@ -205,11 +217,7 @@ pub fn show_game_over_ui(
 }
 
 pub fn hide_all_game_ui(
-    mut queries: ParamSet<(
-        Query<&mut Node, With<ScoreText>>,
-        Query<&mut Node, With<LivesText>>,
-        Query<&mut Node, With<GameOverUI>>,
-    )>,
+    mut queries: ParamSet<(ScoreQuery, LivesQuery, GameOverQuery)>,
 ) {
     if let Ok(mut node) = queries.p0().single_mut() {
         node.display = Display::None;
@@ -224,15 +232,7 @@ pub fn hide_all_game_ui(
     }
 }
 pub fn game_over_button_system(
-    mut interaction_query: Query<
-        (
-            &Interaction,
-            &mut BackgroundColor,
-            Option<&RestartButton>,
-            Option<&GameOverMenuButton>,
-        ),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut interaction_query: GameOverButtonQuery,
     mut next_state: ResMut<NextState<AppScreen>>,
 ) {
     for (interaction, mut color, restart, menu) in &mut interaction_query {
