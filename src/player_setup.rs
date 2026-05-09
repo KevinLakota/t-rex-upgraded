@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use std::error::Error;
+use std::fmt;
 use bevy_simple_text_input::{
     TextInput,
     TextInputSettings,
@@ -38,6 +40,28 @@ pub struct NameInput;
 
 #[derive(Component)]
 pub struct ScoreboardText;
+
+
+#[derive(Debug)]
+pub enum StartGameError {
+    NameInputNotFound,
+    EmptyPlayerName,
+}
+
+impl fmt::Display for StartGameError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            StartGameError::NameInputNotFound => {
+                write!(f, "Name input field was not found")
+            }
+            StartGameError::EmptyPlayerName => {
+                write!(f, "Player name cannot be empty")
+            }
+        }
+    }
+}
+
+impl Error for StartGameError {}
 
 pub fn spawn_player_setup(
     commands: &mut Commands,
@@ -279,19 +303,21 @@ fn try_start_game(
     text_input_query: &Query<&TextInputValue, With<NameInput>>,
     player_profile: &mut ResMut<PlayerProfile>,
     next_state: &mut ResMut<NextState<AppScreen>>,
-) {
-    let Ok(text_input) = text_input_query.single() else {
-        return;
-    };
+) -> Result<(), StartGameError> {
+    let text_input = text_input_query
+        .single()
+        .map_err(|_| StartGameError::NameInputNotFound)?;
 
     let trimmed = text_input.0.trim();
 
     if trimmed.is_empty() {
-        return;
+        return Err(StartGameError::EmptyPlayerName);
     }
 
     player_profile.name = trimmed.to_string();
     next_state.set(AppScreen::Running);
+
+    Ok(())
 }
 
 pub fn player_setup_button_system(
@@ -307,7 +333,9 @@ pub fn player_setup_button_system(
                 *color = BackgroundColor(Color::srgb(0.35, 0.35, 0.35));
 
                 if start_game.is_some() {
-                    try_start_game(&text_input_query, &mut player_profile, &mut next_state);
+                    if let Err(error) = try_start_game(&text_input_query, &mut player_profile, &mut next_state) {
+                        warn!("Could not start game: {}", error);
+                    }
                 } else if back_button.is_some() {
                     next_state.set(AppScreen::MainMenu);
                 }
@@ -329,7 +357,9 @@ pub fn player_setup_submit_system(
     mut player_profile: ResMut<PlayerProfile>,
 ) {
     for _event in submit_events.read() {
-        try_start_game(&text_input_query, &mut player_profile, &mut next_state);
+        if let Err(error) = try_start_game(&text_input_query, &mut player_profile, &mut next_state) {
+            warn!("Could not start game from submit event: {}", error);
+        }
     }
 }
 
